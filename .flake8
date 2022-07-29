@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 79
+extend-ignore = E203,E501,E741,B001,N802,FNE005
+exclude = .tox,.eggs,build,dist,typings,.temp,external,*.pyi
+docstring-convention = numpy
