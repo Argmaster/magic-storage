@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from magic_storage import LocalStorage
+from magic_storage import FilesystemStorage
 from magic_storage._utils import get_random_sha256
 
 IDENTIFIER = get_random_sha256()
@@ -12,9 +12,9 @@ TEST_ITEM_JSON = {"any": 234}
 
 
 class TestLocalStorage:
-    def get_local_storage(self, tmp_path: Path) -> LocalStorage:
+    def get_local_storage(self, tmp_path: Path) -> FilesystemStorage:
         file_path = f"{tmp_path}/__not_important__.py"
-        return LocalStorage(file_path)
+        return FilesystemStorage(file_path)
 
     @pytest.mark.skip()
     def test__dump_as_text_to(self, tmp_path: Path) -> None:

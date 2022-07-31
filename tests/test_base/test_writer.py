@@ -6,7 +6,7 @@ from pytest_mock import MockerFixture
 from magic_storage import StoreType
 from magic_storage.base._writer import WriterBase
 
-from .data import ITEM_0, ITEM_1, ITEM_TEXT_0, ITEM_TEXT_1, UIDS
+from ..data import ITEM_0, ITEM_1, ITEM_TEXT_0, ITEM_TEXT_1, UIDS
 
 
 class WriterImpl(WriterBase):

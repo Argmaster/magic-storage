@@ -10,7 +10,7 @@ from magic_storage import StoreType
 from magic_storage._utils import compress
 from magic_storage.base import ReaderBase
 
-from .data import ITEM_0, ITEM_BYTES_0, ITEM_TEXT_0, UIDS
+from ..data import ITEM_0, ITEM_BYTES_0, ITEM_TEXT_0, UIDS
 
 MOCK_MSG = "This method requires mocking!"
 

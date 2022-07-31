@@ -4,7 +4,7 @@ from typing import TypeVar
 
 from cachetools import RRCache, cached
 
-from ._local import LocalStorage
+from .impl._filesystem import FilesystemStorage
 
 __all__ = ["MagicStorage"]
 
@@ -20,7 +20,7 @@ class MagicStorage:
     always newly created.
     """
 
-    def local(self, current_file: str) -> LocalStorage:
+    def local(self, current_file: str) -> FilesystemStorage:
         """Return local cache storage for current file. Storage object may be
         cached for future use.
 
@@ -38,5 +38,5 @@ class MagicStorage:
 
 
 @cached(cache=RRCache(maxsize=32))
-def get_local_storage(current_file: str) -> LocalStorage:
-    return LocalStorage(current_file)
+def get_local_storage(current_file: str) -> FilesystemStorage:
+    return FilesystemStorage(current_file)

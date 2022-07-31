@@ -7,7 +7,12 @@ from typing import Any
 
 from cachetools import RRCache, cached
 
-__all__ = ["make_uid", "decompress", "compress", "get_random_sha256"]
+__all__ = [
+    "make_uid",
+    "decompress",
+    "compress",
+    "get_random_sha256",
+]
 
 
 LZMA_KWARGS: dict[str, Any] = {
@@ -23,7 +28,7 @@ def make_uid(supports_str: Any) -> str:
     raw_uid = str(supports_str)
     assert isinstance(raw_uid, str)
 
-    clean_uid = "".join(x if x.isalnum() else "_" for x in raw_uid)
+    clean_uid = sha256(raw_uid.encode("utf-8")).hexdigest()
     assert isinstance(clean_uid, str)
 
     return clean_uid

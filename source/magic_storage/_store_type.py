@@ -61,7 +61,7 @@ class StoreType(Enum):
     def is_text(self) -> bool:
         return bool(self.value & TEXT_BIT)
 
-    def is_binary(self) -> bool:
+    def is_binary(self) -> bool:  # pragma: no cover
         return bool(self.value & BYTES_BIT)
 
     @classmethod
@@ -69,5 +69,5 @@ class StoreType(Enum):
         return filter(lambda e: e.is_text(), cls)
 
     @classmethod
-    def iter_binary(cls) -> Iterable[StoreType]:
+    def iter_binary(cls) -> Iterable[StoreType]:  # pragma: no cover
         return filter(lambda e: e.is_binary(), cls)

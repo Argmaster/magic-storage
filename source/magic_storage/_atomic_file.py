@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import json
+import logging
 import os
 import tempfile
 from inspect import Traceback
 from pathlib import Path
-from typing import Any, Optional, Type
+from typing import Any, KeysView, Optional, Type
 
 from filelock import FileLock
 
-__all__ = ["AtomicFile"]
+__all__ = ["AtomicFile", "IndexFile"]
 
 
 class AtomicFile:
@@ -65,3 +67,60 @@ class AtomicFile:
         _traceback: Traceback,
     ) -> None:
         self._lock.release()
+
+
+class IndexFile(AtomicFile):
+    def __init__(self, file_path: str | Path) -> None:
+        super().__init__(file_path)
+        self._index: Optional[dict[str, str]] = None
+
+    def __enter__(self) -> IndexFile:
+        super().__enter__()
+        self._index = {}
+        try:
+            raw = self._file.read_text(encoding="utf-8")
+            self._index = json.loads(raw)
+        except Exception as e:
+            logging.exception(e)
+        return self
+
+    @property
+    def index(self) -> dict[str, str]:
+        assert self._index is not None
+        return self._index
+
+    def __getitem__(self, __key: str) -> str:
+        assert self._index is not None
+        return self._index[__key]
+
+    def get(self, __key: str, __default: str) -> str:
+        assert self._index is not None
+        return self._index.get(__key, __default)
+
+    def __setitem__(self, __key: str, __value: str) -> None:
+        assert self._index is not None
+        self._index[__key] = __value
+
+    def __delitem__(self, __key: str) -> None:
+        assert self._index is not None
+        del self._index[__key]
+
+    def keys(self) -> KeysView:
+        assert self._index is not None
+        return self._index.keys()
+
+    def __contains__(self, __key: str) -> bool:
+        assert self._index is not None
+        return __key in self._index
+
+    def __exit__(
+        self,
+        _exception_type: Optional[Type[BaseException]],
+        _exception_value: Optional[BaseException],
+        _traceback: Traceback,
+    ) -> None:
+        try:
+            self.write_text(json.dumps(self._index), encoding="utf-8")
+        finally:
+            self._index = None
+            super().__exit__(_exception_type, _exception_value, _traceback)

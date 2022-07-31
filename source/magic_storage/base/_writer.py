@@ -28,8 +28,7 @@ class WriterBase(ABC):
         store_type : StoreType
             store type from enum
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
         item : Any
             item to store, constraints depend on storage type.
 
@@ -116,8 +115,7 @@ class WriterBase(ABC):
         Parameters
         ----------
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
         item : str
             item to store, str or str-like objects.
 
@@ -134,8 +132,7 @@ class WriterBase(ABC):
         Parameters
         ----------
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
         item : str
             item to store, bytes or bytes-like objects.
 
@@ -152,8 +149,7 @@ class WriterBase(ABC):
         Parameters
         ----------
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
         item : str
             item to store, any object which can be encoded with json.dumps().
 
@@ -174,8 +170,7 @@ class WriterBase(ABC):
         Parameters
         ----------
         identifier : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
         item : str
             item to store, any object which can be encoded with pickle.dumps().
 

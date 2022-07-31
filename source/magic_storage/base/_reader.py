@@ -20,8 +20,7 @@ class ReaderBase(ABC):
         Parameters
         ----------
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
 
         Returns
         -------
@@ -59,8 +58,7 @@ class ReaderBase(ABC):
         store_type : StoreType, optional
             store type from enum.
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
 
         Returns
         -------
@@ -159,8 +157,7 @@ class ReaderBase(ABC):
         Parameters
         ----------
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
 
         Returns
         -------
@@ -197,8 +194,7 @@ class ReaderBase(ABC):
         Parameters
         ----------
         uid : str
-            object unique identifier. Only Alphanumeric characters allowed,
-            other are replaced with '_'.
+            object unique identifier.
         **load_kw: Any
             keyword argument passed to pickle.loads().
 
@@ -227,10 +223,10 @@ class ReaderExampleImpl(ReaderBase):  # pragma: no cover
     def __init__(self) -> None:
         example = {"foo": 32}
         self.__items_text: dict[str, str] = {
-            "example1": json.dumps(example),
+            make_uid("example1"): json.dumps(example),
         }
         self.__items_bytes: dict[str, bytes] = {
-            "example2": compress(pickle.dumps(example)),
+            make_uid("example2"): compress(pickle.dumps(example)),
         }
 
     def _is_available(self, __uid: str, /) -> bool:
