@@ -4,7 +4,7 @@ from pathlib import Path
 
 from cachetools import Cache, RRCache, cachedmethod
 
-from ._base._storage_io import StorageIOBase
+from .base import StorageIOBase
 
 __all__ = ["LocalStorage"]
 

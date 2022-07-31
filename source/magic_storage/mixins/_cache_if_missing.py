@@ -1,29 +1,45 @@
 from __future__ import annotations
 
 import logging
+from abc import ABC, abstractmethod
 from typing import Any, Callable, TypeVar
 
 from magic_storage._store_type import StoreType
 from magic_storage._utils import make_uid
 
-from ._reader import ReaderBase
-from ._writer import WriterBase
-
-__all__ = ["StorageIOBase"]
-
-
 _R = TypeVar("_R")
 
 
-class StorageIOBase(ReaderBase, WriterBase):
-    def __init__(self) -> None:
-        self.configure()
+class CacheIfMissingMixin(ABC):
+    @abstractmethod
+    def is_available(self, __uid: str, /) -> bool:
+        ...
+
+    @abstractmethod
+    def load_as(  # noqa: FNE004
+        self,
+        store_type: StoreType,
+        uid: str,
+        **load_kw: Any,
+    ) -> Any:
+        ...
+
+    @abstractmethod
+    def store_as(
+        self,
+        store_type: StoreType,
+        /,
+        uid: str,
+        item: Any,
+        **dump_kw: Any,
+    ) -> str:
+        ...
 
     def cache_if_missing(
         self,
         uid: str,
         callback: Callable[[], _R],
-        store_as: StoreType = StoreType.PICKLE,
+        store_type: StoreType = StoreType.PICKLE,
     ) -> _R:
         """Store and return object if not present in cache, otherwise load from
         cache and return.
@@ -36,7 +52,7 @@ class StorageIOBase(ReaderBase, WriterBase):
             Object identifier used to find object in cache.
         callback : Callable[[], _R]
             Callback function which can create new object if object is not found in cache
-        store_as : StoreType, optional
+        store_type : StoreType, optional
             Determines how object should be stored in cache, by default StoreType.PICKLE
 
         Returns
@@ -49,7 +65,7 @@ class StorageIOBase(ReaderBase, WriterBase):
         if self.is_available(uid):
             logging.debug(f"'{uid}' is available and will be loaded.")
             try:
-                return self._load_from_cache(uid, store_as)  # type: ignore
+                return self.load_as(store_type, uid=uid)  # type: ignore
             except Exception as e:
                 logging.exception(e)
             logging.warning(
@@ -61,25 +77,6 @@ class StorageIOBase(ReaderBase, WriterBase):
                 f"Resource '{uid}' is NOT available thus will be created."
             )
         # If cache is not present OR if cache load failed
-        return self._create_cache(uid, callback, store_as)
-
-    def _load_from_cache(
-        self,
-        identifier: str,
-        stored_as: StoreType = StoreType.PICKLE,
-    ) -> Any:
-        item = self.load_as(stored_as, identifier)
-        return item  # type: ignore
-
-    def _create_cache(
-        self,
-        identifier: str,
-        callback: Callable[[], _R],
-        stored_as: StoreType = StoreType.PICKLE,
-    ) -> _R:
         item = callback()
-        self.store_as(stored_as, identifier, item)
+        self.store_as(store_type, uid=uid, item=item)
         return item  # type: ignore
-
-    def configure(self) -> None:
-        """Configure resource storage access."""

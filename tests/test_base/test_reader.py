@@ -7,8 +7,8 @@ from typing import Any
 from pytest_mock import MockerFixture
 
 from magic_storage import StoreType
-from magic_storage._base import ReaderBase
 from magic_storage._utils import compress
+from magic_storage.base import ReaderBase
 
 from .data import ITEM_0, ITEM_BYTES_0, ITEM_TEXT_0, UIDS
 

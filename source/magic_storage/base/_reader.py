@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable
 
 from magic_storage._store_type import StoreType
-from magic_storage._utils import decompress, make_uid
+from magic_storage._utils import compress, decompress, make_uid
 
 __all__ = ["ReaderBase"]
 
@@ -27,6 +27,12 @@ class ReaderBase(ABC):
         -------
         bool
             True when object is present, False otherwise.
+
+        >>> ReaderExampleImpl().is_available("example1")
+        True
+        >>> ReaderExampleImpl().is_available("not available")
+        False
+        >>>
         """
         __uid = make_uid(__uid)
         assert isinstance(__uid, str), __uid
@@ -55,6 +61,18 @@ class ReaderBase(ABC):
         uid : str
             object unique identifier. Only Alphanumeric characters allowed,
             other are replaced with '_'.
+
+        Returns
+        -------
+        str
+            Loaded object.
+
+        Examples
+        --------
+        >>> ReaderExampleImpl().load_as(StoreType.TEXT, uid="example1")
+        '{"foo": 32}'
+        >>> ReaderExampleImpl().load_as(StoreType.PICKLE, uid="example2")
+        {'foo': 32}
         """
         return self._load_as(store_type, uid=uid, **load_kw)
 
@@ -197,3 +215,29 @@ class ReaderBase(ABC):
         StoreType.JSON: _load_json,
         StoreType.PICKLE: _load_pickle,
     }
+
+
+class ReaderExampleImpl(ReaderBase):  # pragma: no cover
+    """Example implementation of ReaderBase interface used in doctests.
+
+    It uses predefined set of resources which can be acquired in order
+    to present the behavior of the class methods
+    """
+
+    def __init__(self) -> None:
+        example = {"foo": 32}
+        self.__items_text: dict[str, str] = {
+            "example1": json.dumps(example),
+        }
+        self.__items_bytes: dict[str, bytes] = {
+            "example2": compress(pickle.dumps(example)),
+        }
+
+    def _is_available(self, __uid: str, /) -> bool:
+        return __uid in self.__items_text or __uid in self.__items_bytes
+
+    def _read_text(self, __uid: str, /) -> str:
+        return self.__items_text[__uid]
+
+    def _read_bytes(self, __uid: str, /) -> bytes:
+        return self.__items_bytes[__uid]
