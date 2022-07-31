@@ -68,7 +68,7 @@ class StorageIOBase(ReaderBase, WriterBase):
         identifier: str,
         stored_as: StoreType = StoreType.PICKLE,
     ) -> Any:
-        item = self.read_as(stored_as, identifier)
+        item = self.load_as(stored_as, identifier)
         return item  # type: ignore
 
     def _create_cache(

@@ -19,11 +19,17 @@ LZMA_KWARGS: dict[str, Any] = {
 
 
 @cached(cache=RRCache(maxsize=64))
-def make_uid(string: str) -> str:
-    return "".join(x if x.isalnum() else "_" for x in string)
+def make_uid(supports_str: Any) -> str:
+    raw_uid = str(supports_str)
+    assert isinstance(raw_uid, str)
+
+    clean_uid = "".join(x if x.isalnum() else "_" for x in raw_uid)
+    assert isinstance(clean_uid, str)
+
+    return clean_uid
 
 
-def decompress(ob: bytes) -> bytes:
+def decompress(ob: bytes | bytearray) -> bytes:
     return lzma.decompress(
         ob,
         format=LZMA_KWARGS["format"],
@@ -31,7 +37,7 @@ def decompress(ob: bytes) -> bytes:
     )
 
 
-def compress(ob: bytes) -> bytes:
+def compress(ob: bytes | bytearray) -> bytes:
     return lzma.compress(
         ob,
         **LZMA_KWARGS,

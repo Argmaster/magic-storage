@@ -1,14 +1,15 @@
 import pickle
 
 import pytest
-from data import ITEM_0, ITEM_1, ITEM_TEXT_0, ITEM_TEXT_1
 from pytest_mock import MockerFixture
 
 from magic_storage import StoreType
 from magic_storage._base._writer import WriterBase
 
+from .data import ITEM_0, ITEM_1, ITEM_TEXT_0, ITEM_TEXT_1, UIDS
 
-class DumperImpl(WriterBase):
+
+class WriterImpl(WriterBase):
 
     dumped_text: dict[str, str]
     dumped_bytes: dict[str, bytes]
@@ -24,13 +25,6 @@ class DumperImpl(WriterBase):
         self.dumped_bytes[uid] = item
 
 
-UIDS = [
-    "magic-object",
-    "some_6234_uid",
-    "gt4o20l-=p24=]l;[-=",
-    "aba521eff0f811c0bf9d628003ee80dc7ac3d4d63357919108a636627d5989f0",
-    "26fd2c26418c6d6a815515d88ed658ed4b651e7f",
-]
 ITEMS_TEXT: list[str] = [
     ITEM_TEXT_0,
     ITEM_TEXT_1,
@@ -57,14 +51,14 @@ class TestWriterBase:
     ) -> None:
         # Check that store_str() and store_json() correctly passes dump call to implementation
         # Prepare class implementing Dumper interface & resources
-        impl = DumperImpl()
+        impl = WriterImpl()
         item = ITEMS_TEXT[item_index]
         # Use interface while expecting it to call _write_text()
         if store_type == StoreType.TEXT:
             clean_id = impl.store_str(uid, item)
         elif store_type == StoreType.JSON:
             clean_id = impl.store_json(uid, item)
-        else:
+        else:  # pragma: no cover
             pytest.fail(
                 "Only TEXT and JSON should appear, unless API changed."
             )
@@ -87,14 +81,14 @@ class TestWriterBase:
     ) -> None:
         # Check that store_bytes() and store_pickle() correctly passes dump call to implementation
         # Prepare class implementing Dumper interface & resources
-        impl = DumperImpl()
+        impl = WriterImpl()
         item = ITEMS_BYTES[item_index]
         # Use interface while expecting it to call _write_bytes()
         if store_type == StoreType.BINARY:
             clean_id = impl.store_bytes(uid, item)
         elif store_type == StoreType.PICKLE:
             clean_id = impl.store_pickle(uid, item)
-        else:
+        else:  # pragma: no cover
             pytest.fail(
                 "Only BINARY and PICKLE should appear, unless API changed."
             )
@@ -110,7 +104,7 @@ class TestWriterBase:
     )
     def test_store_json_complex_object(self, item_index: int) -> None:
         # Check that store_json() serializes complex objects at all.
-        impl = DumperImpl()
+        impl = WriterImpl()
         item = COMPLEX_OBJECT_STORE[item_index]
 
         clean_id = impl.store_json(str(item_index), item)
@@ -129,14 +123,14 @@ class TestWriterBase:
         assert store_type.is_text() is True
         # mock _write_text to record calls to it
         _mock = mocker.patch.object(
-            DumperImpl,
+            WriterImpl,
             "_write_text",
             return_value=None,
         )
         # ensure mocked correctly
-        assert DumperImpl._write_text is _mock
+        assert WriterImpl._write_text is _mock
         # Check if store_as calls correct implementation function
-        impl = DumperImpl()
+        impl = WriterImpl()
 
         impl.store_as(store_type, "1c0bf9d628003ee80dc7ac3d4d", "ANY ARG")
 
@@ -148,14 +142,14 @@ class TestWriterBase:
     ) -> None:
         # mock _write_bytes to record calls to it
         _mock = mocker.patch.object(
-            DumperImpl,
+            WriterImpl,
             "_write_bytes",
             return_value=None,
         )
         # ensure mocked correctly
-        assert DumperImpl._write_bytes is _mock
+        assert WriterImpl._write_bytes is _mock
         # Check if store_as calls correct implementation function
-        impl = DumperImpl()
+        impl = WriterImpl()
 
         impl.store_as(
             StoreType.BINARY,
@@ -172,14 +166,14 @@ class TestWriterBase:
     ) -> None:
         # mock _write_bytes to record calls to it
         _mock = mocker.patch.object(
-            DumperImpl,
+            WriterImpl,
             "_write_bytes",
             return_value=None,
         )
         # ensure mocked correctly
-        assert DumperImpl._write_bytes is _mock
+        assert WriterImpl._write_bytes is _mock
         # Check if store_as calls correct implementation function
-        impl = DumperImpl()
+        impl = WriterImpl()
 
         impl.store_as(
             StoreType.PICKLE,

@@ -3,6 +3,14 @@ true = True
 null = None
 
 
+UIDS = [
+    "magic-object",
+    "some_6234_uid",
+    "gt4o20l-=p24=]l;[-=",
+    "aba521eff0f811c0bf9d628003ee80dc7ac3d4d63357919108a636627d5989f0",
+    "26fd2c26418c6d6a815515d88ed658ed4b651e7f",
+]
+
 ITEM_TEXT_0 = (
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
     "sed do eiusmod tempor incididunt ut labore et dolore magna "
@@ -16,6 +24,8 @@ ITEM_TEXT_1 = (
     "occaecat cupidatat non proident, sunt in culpa qui officia "
     "deserunt mollit anim id est laborum."
 )
+
+ITEM_BYTES_0 = ITEM_TEXT_0.encode("utf-8")
 
 ITEM_0 = [
     {

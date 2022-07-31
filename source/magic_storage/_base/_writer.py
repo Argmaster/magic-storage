@@ -49,10 +49,9 @@ class WriterBase(ABC):
         item: Any,
         **dump_kw: Any,
     ) -> str:
-        logging.debug(f"Dumping '{uid}' as {store_type}.")
-
         uid = make_uid(uid)
         assert isinstance(uid, str), uid
+        logging.debug(f"Dumping '{uid}' as {store_type}.")
 
         retval = self._STORE_MAP[store_type](self, uid, item, **dump_kw)
         assert retval is None, retval
@@ -70,7 +69,7 @@ class WriterBase(ABC):
         return retval
 
     @abstractmethod
-    def _write_text(self, __uid: str, __item: str) -> None:
+    def _write_text(self, __uid: str, __item: str, /) -> None:
         ...
 
     def _store_json(self, uid: str, item: Any, **json_dumps_kw: Any) -> None:
@@ -93,7 +92,7 @@ class WriterBase(ABC):
         return retval
 
     @abstractmethod
-    def _write_bytes(self, __uid: str, __item: bytes) -> None:
+    def _write_bytes(self, __uid: str, __item: bytes, /) -> None:
         ...
 
     def _store_pickle(
