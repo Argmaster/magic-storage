@@ -31,6 +31,7 @@ class ReaderImpl(ReaderBase):
 
 class TestReaderBase:
     def test_load_text(self, mocker: MockerFixture) -> None:  # noqa: FNE004
+        # Check that load_text() correctly calls reading calls.
         item = ITEM_TEXT_0
         impl, _ = self.prepare_text(mocker, item)
         value = impl.load_text(_TESTING_UID)
@@ -39,9 +40,9 @@ class TestReaderBase:
     def prepare_text(
         self, mocker: MockerFixture, retval: Any
     ) -> tuple[ReaderImpl, MockerFixture]:
-        # Check that load_text() correctly calls reading calls.
+        # Prepare environment for testing functions calling _read_bytes()
         impl = ReaderImpl()
-        # mock _write_text to record calls to it
+        # mock _read_text to record calls to it
         _mock = mocker.patch.object(
             ReaderImpl,
             "_read_text",
@@ -54,12 +55,14 @@ class TestReaderBase:
         return impl, mocker
 
     def test_load_json(self, mocker: MockerFixture) -> None:  # noqa: FNE004
+        # Check that load_json() correctly calls reading calls & loads object.
         item = ITEM_0
         impl, _ = self.prepare_text(mocker, json.dumps(item))
         value = impl.load_json(_TESTING_UID)
         assert value == item
 
     def test_load_bytes(self, mocker: MockerFixture) -> None:  # noqa: FNE004
+        # Check that load_bytes() correctly calls reading calls.
         item = ITEM_BYTES_0
         impl, _ = self.prepare_bytes(mocker, item)
         value = impl.load_bytes(_TESTING_UID)
@@ -68,9 +71,9 @@ class TestReaderBase:
     def prepare_bytes(
         self, mocker: MockerFixture, retval: Any
     ) -> tuple[ReaderImpl, MockerFixture]:
-        # Check that load_text() correctly calls reading calls.
+        # Prepare environment for testing functions calling _read_bytes()
         impl = ReaderImpl()
-        # mock _write_bytes to record calls to it
+        # mock _read_bytes to record calls to it
         _mock = mocker.patch.object(
             ReaderImpl,
             "_read_bytes",
@@ -83,12 +86,14 @@ class TestReaderBase:
         return impl, mocker
 
     def test_load_pickle(self, mocker: MockerFixture) -> None:  # noqa: FNE004
+        # Check that load_pickle() correctly calls reading calls & loads object.
         item = ITEM_BYTES_0
         impl, _ = self.prepare_bytes(mocker, compress(pickle.dumps(item)))
         value = impl.load_pickle(_TESTING_UID)
         assert value == item
 
     def test_load_as(self, mocker: MockerFixture) -> None:  # noqa: FNE004
+        # Check that load_as() correctly calls reading calls.
         item = ITEM_TEXT_0
         impl, _ = self.prepare_text(mocker, item)
         value = impl.load_as(StoreType.TEXT, _TESTING_UID)
