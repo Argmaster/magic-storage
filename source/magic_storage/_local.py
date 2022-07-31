@@ -21,8 +21,8 @@ class LocalStorage(StorageIOBase):
     def _get_cache(self) -> Cache:
         return self._cache
 
-    def _is_available(self, identifier: str) -> bool:
-        file = self._current_data / identifier
+    def _is_available(self, uid: str) -> bool:
+        file = self._current_data / uid
         if file.is_dir():
             raise RuntimeError(
                 f"{file.absolute()} is a directory, was expected to be a file."
@@ -30,22 +30,20 @@ class LocalStorage(StorageIOBase):
         return file.exists()
 
     @cachedmethod(_get_cache)
-    def _read_text(self, identifier: str) -> str:
-        return (self._current_data / identifier).read_text(
-            encoding=self._encoding
-        )
+    def _read_text(self, uid: str) -> str:
+        return (self._current_data / uid).read_text(encoding=self._encoding)
 
     @cachedmethod(_get_cache)
-    def _read_bytes(self, identifier: str) -> bytes:
-        return (self._current_data / identifier).read_bytes()
+    def _read_bytes(self, uid: str) -> bytes:
+        return (self._current_data / uid).read_bytes()
 
-    def _write_text(self, identifier: str, item: str) -> None:
-        file = self._current_data / identifier
+    def _write_text(self, uid: str, item: str) -> None:
+        file = self._current_data / uid
         with file.open("wt", encoding=self._encoding) as io:
             io.write(item)
 
-    def _write_bytes(self, identifier: str, item: bytes) -> None:
-        file = self._current_data / identifier
+    def _write_bytes(self, uid: str, item: bytes) -> None:
+        file = self._current_data / uid
         with file.open("wb") as io:
             io.write(item)
 
