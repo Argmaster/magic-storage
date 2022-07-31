@@ -9,9 +9,6 @@ pytest-mock>=3.8.2,<4.0
 hypothesis>=6.46.0,<6.47.0
 # mypy & types
 mypy==0.971
-types-backports
-types-pytz
-types-requests==2.28.1
 types-setuptools
 types-cachetools
 # ?
