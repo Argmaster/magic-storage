@@ -21,16 +21,16 @@ repo_url: https://github.com/Argmaster/magic_storage
 copyright: Copyright (c) 2022 Krzysztof Wiśniewski
 nav:
   - Introduction: index.md
-  - Development:
-      - Introduction: "develop/introduction.md"
-      - Tox environments: "develop/tox_basics.md"
-      - Documentation: "develop/docs.md"
-      - Formatting code: "develop/formatting.md"
-      - Quality checks: "develop/quality_checks.md"
-  - How to's:
-      - Set up tox for development: "howto/tox_devenv.md"
-      - Set up Visual Studio Code: "howto/set_up_vsc.md"
-      - Set up environment in VSC: "howto/env_in_vsc.md"
+  - Reference:
+      MagicStorage: reference/magic_storage.md
+      StoreType Enum: reference/store_type.md
+      InMemoryStorage: reference/in_memory_storage.md
+      FilesystemStorage: reference/filesystem_storage.md
+      StorageIOBase: reference/storage_io_base.md
+      ReaderBase: reference/reader_base.md
+      WriterBase: reference/writer_base.md
+      Mixins: reference/mixins.md
+      AtomicFile: reference/atomic_file.md
   - Changelog: changelog.md
   - License: license.md
 markdown_extensions:

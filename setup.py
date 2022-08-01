@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import re
 from pathlib import Path
-from typing import List, Union
+from typing import Any, List, Union
 
 from setuptools import find_packages, setup
 
@@ -26,6 +26,10 @@ def fetch_requirements(file_path: Union[str, Path]) -> list[str]:
     with open(file_path, "r", encoding="utf-8") as file:
         for requirement in file.readlines():
             requirement = requirement.strip()
+
+            if requirement.startswith("#"):
+                continue
+
             if requirement.startswith("-r"):
                 requirements_list.extend(
                     fetch_requirements(
@@ -34,6 +38,7 @@ def fetch_requirements(file_path: Union[str, Path]) -> list[str]:
                 )
             else:
                 requirements_list.append(requirement)
+
         return requirements_list
 
 
@@ -49,7 +54,8 @@ NAME = PACKAGE_NAME
 VERSION = fetch_version(PACKAGE_CODE_DIR / "__init__.py")
 LICENSE_NAME = "MIT"
 SHORT_DESCRIPTION = (
-    "Neural Network Eigenvalue Estimator for quantum oscillator problem."
+    "Small Python 3 library providing wrapper classes for storage (caching) "
+    "of test resources (and unintentionally other types of resources too)."
 )
 LONG_DESCRIPTION = fetch_utf8_content("README.md")
 LONG_DESCRIPTION_CONTENT_TYPE = "text/markdown"
@@ -83,7 +89,7 @@ KEYWORDS = [
 EXTRAS_REQUIRE = {
     "dev": fetch_requirements(REPOSITORY_ROOT_DIR / "requirements-dev.txt"),
 }
-ENTRY_POINTS = {}
+ENTRY_POINTS: dict[str, Any] = {}
 PYTHON_REQUIREMENTS = ">=3.9"
 
 PACKAGES = find_packages(where="source")

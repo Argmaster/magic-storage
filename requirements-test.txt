@@ -1,17 +1,15 @@
 # Pytest + plugins
 pytest==7.1.2
-pytest-flake8==1.1.1
 pytest-cov==3.0.0
 pytest-asyncio>=0.18.0,<0.19.0
 pytest-xdist>=2.5.0,<2.6.0
 pytest-xdist[psutil]
+pytest-mock>=3.8.2,<4.0
 # Hypothesis https://hypothesis.readthedocs.io/en/latest/data.html
 hypothesis>=6.46.0,<6.47.0
 # mypy & types
 mypy==0.971
-types-backports
-types-pytz
-types-requests==2.28.1
 types-setuptools
+types-cachetools
 # ?
 lxml==4.9.1
