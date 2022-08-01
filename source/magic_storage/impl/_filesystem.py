@@ -10,11 +10,12 @@ from cachetools import Cache, RRCache, cachedmethod
 from magic_storage._atomic_file import AtomicFile
 from magic_storage._utils import make_uid
 from magic_storage.base import StorageIOBase
+from magic_storage.mixins import FullyFeaturedMixin
 
 __all__ = ["FilesystemStorage"]
 
 
-class FilesystemStorage(StorageIOBase):
+class FilesystemStorage(StorageIOBase, FullyFeaturedMixin):
     """Implementation of storage class which operates on filesystem items to
     preserve saved items between sessions. Loading procedures can optionally
     use caching, they do by default, therefore without disabling it you can't
@@ -26,12 +27,16 @@ class FilesystemStorage(StorageIOBase):
     Parameters
     ----------
     __root : str | Path
-        root dir for fs storage, if __root points to file, parent directory of this file will be used.
-    __store_subdir : Optional[str], optional
-        nested directory to use for file storage, when None, data will be stored directly in __root, by default "data"
+        root dir for fs storage, if __root points to file, parent directory of
+        this file will be used.
+    subdir : Optional[str], optional
+        nested directory to use for file storage, when None, data will be stored
+        directly in __root, by default "data". When __root is file, subdirectory
+        in __root parent directory will be used.
 
     Example
     -------
+    ```
     >>> tmp = getfixture('tmp_path')
     >>> from magic_storage import StoreType
     >>> fs = FilesystemStorage(tmp)
@@ -43,6 +48,8 @@ class FilesystemStorage(StorageIOBase):
     True
     >>> fs.load_as(StoreType.JSON, uid=UID)
     {'foo': 32}
+    >>>
+    ```
     """
 
     def __init__(

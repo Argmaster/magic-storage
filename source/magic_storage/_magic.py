@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TypeVar
-
-from cachetools import RRCache, cached
 
 from .impl._filesystem import FilesystemStorage
 
@@ -20,23 +19,36 @@ class MagicStorage:
     always newly created.
     """
 
-    def local(self, current_file: str) -> FilesystemStorage:
-        """Return local cache storage for current file. Storage object may be
-        cached for future use.
+    def filesystem(self, __root: str | Path) -> FilesystemStorage:
+        """Return local cache storage for current file. This object will be
+        configured to use cache.
 
         Parameters
         ----------
         current_file : str
-            expects __file__ variable to be used. Providing different string may cause unexpected results.
+            Either directory or file, when file, its parent directory will be used.
 
         Returns
         -------
-        LocalStorage
-            storage object.
+        FilesystemStorage
+            new storage object.
         """
-        return get_local_storage(current_file)
+        return FilesystemStorage(__root)
 
+    def filesystem_no_cache(self, __root: str | Path) -> FilesystemStorage:
+        """Return local cache storage for current file. This object will be
+        configured to not use cache.
 
-@cached(cache=RRCache(maxsize=32))
-def get_local_storage(current_file: str) -> FilesystemStorage:
-    return FilesystemStorage(current_file)
+        Parameters
+        ----------
+        current_file : str
+            Either directory or file, when file, its parent directory will be used.
+
+        Returns
+        -------
+        FilesystemStorage
+            new storage object.
+        """
+        fs = FilesystemStorage(__root)
+        fs.configure(cache=None)
+        return fs

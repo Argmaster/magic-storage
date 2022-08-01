@@ -27,11 +27,15 @@ class ReaderBase(ABC):
         bool
             True when object is present, False otherwise.
 
+        Examples
+        --------
+        ```
         >>> ReaderExampleImpl().is_available("example1")
         True
         >>> ReaderExampleImpl().is_available("not available")
         False
         >>>
+        ```
         """
         __uid = make_uid(__uid)
         assert isinstance(__uid, str), __uid
@@ -67,10 +71,13 @@ class ReaderBase(ABC):
 
         Examples
         --------
+        ```
         >>> ReaderExampleImpl().load_as(StoreType.TEXT, uid="example1")
         '{"foo": 32}'
         >>> ReaderExampleImpl().load_as(StoreType.PICKLE, uid="example2")
         {'foo': 32}
+        >>>
+        ```
         """
         return self._load_as(store_type, uid=uid, **load_kw)
 

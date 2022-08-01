@@ -14,40 +14,121 @@ __all__ = ["AtomicFile", "IndexFile"]
 
 
 class AtomicFile:
+    """File like object supporting writing and reading in quasi atomic manor.
+
+    All reading and writing is done under lock and writing is done with
+    temporary files and os.replace().
+
+    Example
+    -------
+    ```
+    >>> tmp = getfixture("tmp_path")
+    >>> with AtomicFile(tmp / "some_file.txt") as file:
+    ...     file.write_text("Example content")
+    ...
+    >>> with AtomicFile(tmp / "some_file.txt") as file:
+    ...     file.read_text()
+    ...
+    'Example content'
+    >>>
+    ```
+    """
+
     def __init__(self, file_path: str | Path) -> None:
         file_path = Path(file_path)
-        self._file = file_path
-        self._lock_file = file_path.parent / f"{file_path.name}.lock"
+        self._file = file_path.absolute()
+        self._lock_file = (
+            file_path.parent / f"{file_path.name}.lock"
+        ).absolute()
         self._lock = FileLock(self._lock_file)
 
     def __enter__(self) -> AtomicFile:
         self._file.touch(0o777, True)
+        logging.debug(f"Created {self._file}.")
         self._lock.acquire()
+        logging.debug(f"Acquired {self._lock_file}.")
         return self
 
     def read_text(self, **kwargs: Any) -> str:
-        assert self._lock.is_locked
-        return self._file.read_text(**kwargs)
+        """Read data from file. Requires lock to be acquired with context
+        manager.
 
-    def write_text(self, content: str, **kwargs: Any) -> None:
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments passed to Path.read_text()
+
+        Returns
+        -------
+        str
+            data from file.
+        """
+        assert self._lock.is_locked
+        value = self._file.read_text(**kwargs)
+        logging.debug(f"Read text to {self._file}.")
+        return value
+
+    def write_text(
+        self,
+        content: str,
+        encoding: str = "utf-8",
+        errors: str = "strict",
+    ) -> None:
+        """Write data to file. Requires lock to be acquired with context
+        manager.
+
+        Parameters
+        ----------
+        content : str
+            Content to be saved.
+        encoding : str, optional
+            Encoding to use, by default "utf-8"
+        errors : str, optional
+            Error mode, same rules as for open(), by default "strict"
+        """
         assert self._lock.is_locked
         temp = tempfile.NamedTemporaryFile(
             mode="wt",
             delete=False,
             suffix=self._file.name,
             dir=self._file.parent,
-            encoding="utf-8",
+            encoding=encoding,
+            errors=errors,
         )
         temp.write(content)
         temp.flush()
         temp.close()
         os.replace(temp.name, self._file)
+        logging.debug(f"Wrote text to {self._file}.")
 
     def read_bytes(self, **kwargs: Any) -> bytes:
-        assert self._lock.is_locked
-        return self._file.read_bytes(**kwargs)
+        """Read data from file. Requires lock to be acquired with context
+        manager.
 
-    def write_bytes(self, content: bytes, **kwargs: Any) -> None:
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments passed to Path.read_bytes()
+
+        Returns
+        -------
+        str
+            data from file.
+        """
+        assert self._lock.is_locked
+        value = self._file.read_bytes(**kwargs)
+        logging.debug(f"Read text to {self._file}.")
+        return value
+
+    def write_bytes(self, content: bytes) -> None:
+        """Write data to file. Requires lock to be acquired with context
+        manager.
+
+        Parameters
+        ----------
+        content : str
+            Content to be saved.
+        """
         assert self._lock.is_locked
         temp = tempfile.NamedTemporaryFile(
             mode="wb",
@@ -59,6 +140,7 @@ class AtomicFile:
         temp.flush()
         temp.close()
         os.replace(temp.name, self._file)
+        logging.debug(f"Wrote bytes to {self._file}.")
 
     def __exit__(
         self,
@@ -67,6 +149,7 @@ class AtomicFile:
         _traceback: Traceback,
     ) -> None:
         self._lock.release()
+        logging.debug(f"Released {self._lock_file}.")
 
 
 class IndexFile(AtomicFile):

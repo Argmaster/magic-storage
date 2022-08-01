@@ -72,7 +72,13 @@ class WriterBase(ABC):
         ...
 
     def _store_json(self, uid: str, item: Any, **json_dumps_kw: Any) -> None:
-        raw_value = json.dumps(item, **json_dumps_kw)
+        try:
+            raw_value = json.dumps(item, **json_dumps_kw)
+        except TypeError:
+            if hasattr(item, "json") and callable(item.json):
+                raw_value = json.dumps(item.json(), **json_dumps_kw)
+            else:
+                raise
         assert isinstance(raw_value, str), raw_value
 
         retval = self._write_text(uid, raw_value)
