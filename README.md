@@ -18,3 +18,8 @@ Install and update using pip:
 ```
 $ pip install -U magic_storage
 ```
+
+# Documentation
+
+Online documentation is available on
+[Github pages](https://argmaster.github.io/magic-storage/).
