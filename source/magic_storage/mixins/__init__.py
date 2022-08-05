@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ._cache_if_missing import CacheIfMissingMixin
 
 __all__ = ["FullyFeaturedMixin", "CacheIfMissingMixin"]
