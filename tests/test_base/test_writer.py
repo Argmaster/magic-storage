@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pickle
 
 import pytest
@@ -66,6 +68,13 @@ class TestWriterBase:
         assert len(impl.dumped_text.keys()) == 1
         assert len(impl.dumped_bytes.keys()) == 0
         assert item in impl.dumped_text[clean_id]
+
+    def test_store_json_fallback_failure(self) -> None:
+        # Check that when object is not json serializable and fallback json() is not
+        # available, TypeError will be re raised
+        impl = WriterImpl()
+        with pytest.raises(TypeError):
+            impl.store_json(UIDS[0], object())
 
     @pytest.mark.parametrize(
         ("uid", "item_index", "store_type"),

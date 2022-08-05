@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 false = False
 true = True
 null = None

@@ -76,7 +76,7 @@ class WriterBase(ABC):
             raw_value = json.dumps(item, **json_dumps_kw)
         except TypeError:
             if hasattr(item, "json") and callable(item.json):
-                raw_value = json.dumps(item.json(), **json_dumps_kw)
+                raw_value = item.json()
             else:
                 raise
         assert isinstance(raw_value, str), raw_value
