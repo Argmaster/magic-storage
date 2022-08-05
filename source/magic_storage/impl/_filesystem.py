@@ -102,6 +102,9 @@ class FilesystemStorage(StorageIOBase, FullyFeaturedMixin):
         with AtomicFile(self._filepath(uid)) as file:
             file.write_bytes(item)
 
+    def _delete(self, __uid: str, /, *, missing_ok: bool = False) -> None:
+        self._filepath(__uid).unlink(missing_ok)
+
     def configure(
         self,
         *,

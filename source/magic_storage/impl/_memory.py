@@ -36,3 +36,6 @@ class InMemoryStorage(StorageIOBase, FullyFeaturedMixin):
 
     def _write_bytes(self, uid: str, item: bytes) -> None:
         self.__storage[uid] = item
+
+    def _delete(self, __uid: str, /, *, missing_ok: bool = False) -> None:
+        self.__storage.pop(__uid)
