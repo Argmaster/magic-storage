@@ -14,4 +14,4 @@ __all__ = [
     "AtomicFile",
 ]
 
-__version__: str = "1.0.0"
+__version__: str = "1.1.0"
