@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from magic_storage._utils import make_uid
+
 __all__ = ["DeleterBase"]
 
 
@@ -18,10 +20,12 @@ class DeleterBase(ABC):
         missing_ok : bool, optional
             ignores missing key errors, by default False
         """
+        uid = make_uid(__uid)
         try:
-            self._delete(__uid, missing_ok=missing_ok)
+            self._delete(uid, missing_ok=missing_ok)
         except Exception as e:
-            raise KeyError(f"Couldn't delete {__uid}.") from e
+            if not missing_ok:
+                raise KeyError(f"Couldn't delete {__uid}.") from e
 
     @abstractmethod
     def _delete(self, __uid: str, /, *, missing_ok: bool = False) -> None:

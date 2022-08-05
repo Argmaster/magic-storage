@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from pathlib import Path
+
+import pytest
 
 from magic_storage import StoreType
 from magic_storage.impl import FilesystemStorage
@@ -89,3 +93,21 @@ class TestFileStorage:
         ld_item = impl.load_as(StoreType.PICKLE, uid=UID)
         # And after load should remain in same form
         assert item == ld_item
+
+    def test_delete_existing(self, tmp_path: Path) -> None:
+        # Check that delete works correctly for uid which is available
+        item = ITEM_1
+        impl = FilesystemStorage(tmp_path)
+        impl.store_as(StoreType.PICKLE, uid=UID, item=item)
+        impl.delete(UID)
+
+    def test_delete_non_existing(self, tmp_path: Path) -> None:
+        # Check that delete works correctly for uid which is not available
+        impl = FilesystemStorage(tmp_path)
+        with pytest.raises(KeyError):
+            impl.delete(UID)
+
+    def test_delete_non_existing_missing_ok(self, tmp_path: Path) -> None:
+        # Check that delete works correctly for uid which is not available
+        impl = FilesystemStorage(tmp_path)
+        impl.delete(UID, missing_ok=True)

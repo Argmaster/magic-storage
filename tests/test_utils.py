@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from magic_storage._utils import compress, decompress, get_random_sha256
 
 
