@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from magic_storage import InMemoryStorage, StoreType
 
 from ..data import ITEM_0, ITEM_1, ITEM_BYTES_0, ITEM_TEXT_0, UIDS
@@ -81,3 +83,18 @@ class TestInMemoryStorage:
         ld_item = impl.load_as(StoreType.PICKLE, uid=UID)
         # And after load should remain in same form
         assert item == ld_item
+
+    def test_delete_existing(self) -> None:
+        impl = InMemoryStorage()
+        item = ITEM_1
+        impl.store_as(StoreType.PICKLE, uid=UID, item=item)
+        impl.delete(UID)
+
+    def test_delete_not_existing(self) -> None:
+        impl = InMemoryStorage()
+        with pytest.raises(KeyError):
+            impl.delete(UID)
+
+    def test_delete_not_existing_missing_ok(self) -> None:
+        impl = InMemoryStorage()
+        impl.delete(UID, missing_ok=True)

@@ -38,4 +38,7 @@ class InMemoryStorage(StorageIOBase, FullyFeaturedMixin):
         self.__storage[uid] = item
 
     def _delete(self, __uid: str, /, *, missing_ok: bool = False) -> None:
-        self.__storage.pop(__uid)
+        if missing_ok:
+            self.__storage.pop(__uid, None)
+        else:
+            self.__storage.pop(__uid)
