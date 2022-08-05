@@ -29,6 +29,7 @@ nav:
       StorageIOBase: reference/storage_io_base.md
       ReaderBase: reference/reader_base.md
       WriterBase: reference/writer_base.md
+      DeleterBase: reference/deleter_base.md
       Mixins: reference/mixins.md
       AtomicFile: reference/atomic_file.md
   - Changelog: changelog.md
