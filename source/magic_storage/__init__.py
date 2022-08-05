@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ._atomic_file import AtomicFile
 from ._magic import MagicStorage
 from ._store_type import StoreType
