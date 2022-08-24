@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TypeVar
 
-from .impl._filesystem import FilesystemStorage
+from .impl._filesystem import Filesystem
 
 __all__ = ["MagicStorage"]
 
@@ -19,7 +19,7 @@ class MagicStorage:
     always newly created.
     """
 
-    def filesystem(self, __root: str | Path) -> FilesystemStorage:
+    def filesystem(self, __root: str | Path) -> Filesystem:
         """Return local cache storage for current file. This object will be
         configured to use cache.
 
@@ -33,9 +33,9 @@ class MagicStorage:
         FilesystemStorage
             new storage object.
         """
-        return FilesystemStorage(__root)
+        return Filesystem(__root)
 
-    def filesystem_no_cache(self, __root: str | Path) -> FilesystemStorage:
+    def filesystem_no_cache(self, __root: str | Path) -> Filesystem:
         """Return local cache storage for current file. This object will be
         configured to not use cache.
 
@@ -49,6 +49,6 @@ class MagicStorage:
         FilesystemStorage
             new storage object.
         """
-        fs = FilesystemStorage(__root)
+        fs = Filesystem(__root)
         fs.configure(cache=None)
         return fs

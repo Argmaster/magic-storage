@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import inspect
+import logging
 import lzma
+from contextlib import suppress
 from hashlib import sha256
+from pathlib import Path
 from random import random
 from typing import Any
 
-from cachetools import RRCache, cached
+from cachetools import RRCache
 
 __all__ = [
-    "make_uid",
+    "uid",
     "decompress",
     "compress",
     "get_random_sha256",
@@ -23,15 +27,27 @@ LZMA_KWARGS: dict[str, Any] = {
 }
 
 
-@cached(cache=RRCache(maxsize=64))
-def make_uid(supports_str: Any) -> str:
-    raw_uid = str(supports_str)
-    assert isinstance(raw_uid, str)
+_UID_CACHE: RRCache = RRCache(maxsize=64)
 
-    clean_uid = sha256(raw_uid.encode("utf-8")).hexdigest()
-    assert isinstance(clean_uid, str)
 
-    return clean_uid
+def uid(*__source: str) -> str:
+    key = "".join(__source)
+    assert isinstance(key, str)
+
+    with suppress(KeyError):
+        value = _UID_CACHE[key]
+        assert isinstance(value, str)
+
+        logging.debug("Cache hit for UID from {key!r}")
+
+        return value
+
+    uid_value = sha256(key.encode("utf-8")).hexdigest()
+    assert isinstance(uid_value, str)
+
+    _UID_CACHE[key] = uid_value
+
+    return uid_value
 
 
 def decompress(ob: bytes | bytearray) -> bytes:
@@ -51,3 +67,31 @@ def compress(ob: bytes | bytearray) -> bytes:
 
 def get_random_sha256() -> str:
     return sha256(str(random()).encode("utf-8")).hexdigest()
+
+
+def this_uid(*extra: str, ascend: int = 2) -> str:
+    """Return UID based of name of function which called this_uid().
+
+    Parameters
+    ----------
+    ascend : int, optional
+        Ascension of stack, can be used to refer to functions
+        higher in stack, by default 2
+
+    Returns
+    -------
+    str
+        Unique identifier created.
+    """
+    frame = _frame(ascend)
+    return uid(frame.function, *extra)
+
+
+def _frame(ascend: int) -> inspect.FrameInfo:
+    frames = inspect.stack()
+    return frames[ascend]
+
+
+def this_file(ascend: int = 2) -> Path:
+    frame = _frame(ascend)
+    return Path(frame.filename)

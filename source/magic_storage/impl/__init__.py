@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ._filesystem import FilesystemStorage
-from ._memory import InMemoryStorage
+from ._filesystem import Filesystem
+from ._memory import InMemory
 
-__all__ = ["InMemoryStorage", "FilesystemStorage"]
+__all__ = ["InMemory", "Filesystem"]

@@ -7,7 +7,6 @@
     <a href="https://pycqa.github.io/isort/"><img alt="isort" src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336"></a>
     <a href="https://github.com/Argmaster/magic-storage/actions"><img alt="Test Status" src="https://github.com/Argmaster/magic-storage/workflows/Test%20suite%20CI%20run/badge.svg"></a>
     <a href="https://github.com/Argmaster/magic-storage/actions"><img alt="Docs Status" src="https://github.com/Argmaster/magic-storage/workflows/Deploy%20documentation/badge.svg"></a>
-    <a href="https://github.com/Argmaster/magic-storage/actions"><img alt="Docs Status" src="https://github.com/Argmaster/magic-storage/workflows/Deploy%20documentation/badge.svg"></a>
     <a href="https://pypi.org/project/magic-storage/"><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/magic-storage"></a>
     <a href="https://github.com/Argmaster/magic-storage/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Argmaster/magic-storage"></a>
     <a href="https://github.com/Argmaster/magic-storage/pulls"><img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/Argmaster/magic-storage"></a>

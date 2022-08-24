@@ -8,14 +8,14 @@ from unittest.mock import sentinel
 from cachetools import Cache, RRCache, cachedmethod
 
 from magic_storage._atomic_file import AtomicFile
-from magic_storage._utils import make_uid
-from magic_storage.base import StorageIOBase
+from magic_storage._base import StorageIOBase
+from magic_storage._utils import this_file
 from magic_storage.mixins import FullyFeaturedMixin
 
-__all__ = ["FilesystemStorage"]
+__all__ = ["Filesystem"]
 
 
-class FilesystemStorage(StorageIOBase, FullyFeaturedMixin):
+class Filesystem(StorageIOBase, FullyFeaturedMixin):
     """Implementation of storage class which operates on filesystem items to
     preserve saved items between sessions. Loading procedures can optionally
     use caching, they do by default, therefore without disabling it you can't
@@ -26,84 +26,78 @@ class FilesystemStorage(StorageIOBase, FullyFeaturedMixin):
 
     Parameters
     ----------
-    __root : str | Path
-        root dir for fs storage, if __root points to file, parent directory of
+    root : str | Path
+        root dir for fs storage, if root points to file, parent directory of
         this file will be used.
     subdir : Optional[str], optional
         nested directory to use for file storage, when None, data will be stored
-        directly in __root, by default "data". When __root is file, subdirectory
-        in __root parent directory will be used.
+        directly in root, by default "data". When root is file, subdirectory
+        in root parent directory will be used.
 
     Example
     -------
     ```
     >>> tmp = getfixture('tmp_path')
-    >>> from magic_storage import StoreType
-    >>> fs = FilesystemStorage(tmp)
+    >>> from magic_storage import Mode
+    >>> fs = Filesystem(tmp)
     >>> example_item = {"foo": 32}
     >>> UID = "EXAMPLE UID"
-    >>> fs.store_as(StoreType.JSON, uid=UID, item=example_item)
-    '4c9e95de851b875493ba6c6dfb16b6aaae5c3e167aef9ab6edfeb0dbca2f6574'
+    >>> fs.store(UID, example_item, mode=Mode.JSON)
+    'EXAMPLE UID'
     >>> fs.is_available(UID)
     True
-    >>> fs.load_as(StoreType.JSON, uid=UID)
+    >>> fs.load(UID, mode=Mode.JSON)
     {'foo': 32}
     >>>
     ```
     """
 
     def __init__(
-        self, __root: str | Path, *, subdir: Optional[str] = "data"
+        self, root: str | Path | None, *, subdir: Optional[str] = "data"
     ) -> None:
+        if root is None:
+            # Move to fourth frame in call stack including this_file() call
+            root = this_file(ascend=3)
 
-        # store details about location in filesystem
-        __root = Path(__root)
-        # when __file__ is used, replace it with parent dir
-        if __root.is_file():
-            __root = __root.parent
+        root = Path(root)
+        # When pointing to file, eg. when __file__ was used, replace it with parent dir
+        if root.is_file():
+            root = root.parent
+
         if subdir is not None:
-            self._data_dir = __root / subdir
+            self._data_dir = root / subdir
         else:
-            self._data_dir = __root
+            self._data_dir = root
+
         self._data_dir.mkdir(0o777, True, True)
 
         self._cache: Optional[RRCache] = RRCache(maxsize=128)
         self._encoding = "utf-8"
         super().__init__()
 
-    def _filepath(self, __uid: str) -> Path:
-        __uid = make_uid(__uid)
-        assert isinstance(__uid, str)
+    def _filepath(self, identifier: str) -> Path:
+        assert isinstance(identifier, str)
 
-        return self._data_dir / __uid
+        return self._data_dir / identifier
 
     def _get_cache(self) -> Optional[Cache]:
         return self._cache
 
-    def _is_available(self, __uid: str) -> bool:
-        fname = self._filepath(__uid)
+    def _is_available(self, identifier: str) -> bool:
+        fname = self._filepath(identifier)
         return fname.exists() and fname.is_file()
 
     @cachedmethod(_get_cache)
-    def _read_text(self, uid: str) -> str:
-        with AtomicFile(self._filepath(uid)) as file:
-            return file.read_text(encoding=self._encoding)
-
-    @cachedmethod(_get_cache)
-    def _read_bytes(self, uid: str) -> bytes:
-        with AtomicFile(self._filepath(uid)) as file:
+    def _read_bytes(self, identifier: str) -> bytes:
+        with AtomicFile(self._filepath(identifier)) as file:
             return file.read_bytes()
 
-    def _write_text(self, uid: str, item: str) -> None:
-        with AtomicFile(self._filepath(uid)) as file:
-            file.write_text(item, encoding=self._encoding)
-
-    def _write_bytes(self, uid: str, item: bytes) -> None:
-        with AtomicFile(self._filepath(uid)) as file:
+    def _write_bytes(self, identifier: str, item: bytes) -> None:
+        with AtomicFile(self._filepath(identifier)) as file:
             file.write_bytes(item)
 
-    def _delete(self, __uid: str, /, *, missing_ok: bool = False) -> None:
-        self._filepath(__uid).unlink(missing_ok)
+    def _delete(self, identifier: str, /, *, missing_ok: bool = False) -> None:
+        self._filepath(identifier).unlink(missing_ok)
 
     def configure(
         self,

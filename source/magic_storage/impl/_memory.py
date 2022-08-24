@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from magic_storage.base import StorageIOBase
+from magic_storage._base import StorageIOBase
 from magic_storage.mixins import FullyFeaturedMixin
 
 
-class InMemoryStorage(StorageIOBase, FullyFeaturedMixin):
-
+class InMemory(StorageIOBase, FullyFeaturedMixin):
     """Implementation of storage class which operates only in RAM and thus will
     be lost after garbage collection.
 
@@ -13,7 +12,6 @@ class InMemoryStorage(StorageIOBase, FullyFeaturedMixin):
     """
 
     def __init__(self) -> None:
-        super().__init__()
         self.__storage: dict[str, str | bytes] = {}
 
     def _is_available(self, uid: str) -> bool:
