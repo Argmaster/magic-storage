@@ -10,7 +10,7 @@ from magic_storage._mode import Mode
 _R = TypeVar("_R")
 
 
-class CacheIfMissingMixin(ABC):
+class StoreIfAbsentMixin(ABC):
     @abstractmethod
     def is_available(self, name: str) -> bool:
         ...

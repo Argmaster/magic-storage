@@ -192,13 +192,13 @@ class IOBase(metaclass=_IOMeta):
             on attempt to delete non-existing object, unless missing_ok=True
         """
         try:
-            self._delete(name, missing_ok=missing_ok)
+            self._delete(name)
         except Exception as e:
             if not missing_ok:
                 raise IOBase.DeletionError(f"Couldn't delete {name}.") from e
 
     @abstractmethod
-    def _delete(self, name: str, /, *, missing_ok: bool = False) -> None:
+    def _delete(self, name: str) -> None:
         ...
 
 

@@ -96,8 +96,8 @@ class Filesystem(StorageIOBase, FullyFeaturedMixin):
         with AtomicFile(self._filepath(identifier)) as file:
             file.write_bytes(item)
 
-    def _delete(self, identifier: str, /, *, missing_ok: bool = False) -> None:
-        self._filepath(identifier).unlink(missing_ok)
+    def _delete(self, identifier: str) -> None:
+        self._filepath(identifier).unlink()
 
     def configure(
         self,

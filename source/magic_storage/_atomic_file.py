@@ -49,7 +49,11 @@ class AtomicFile:
         logging.debug(f"Acquired {self._lock_file}.")
         return self
 
-    def read_text(self, **kwargs: Any) -> str:
+    def read_text(
+        self,
+        encoding: str = "utf-8",
+        errors: str = "strict",
+    ) -> str:
         """Read data from file. Requires lock to be acquired with context
         manager.
 
@@ -63,10 +67,7 @@ class AtomicFile:
         str
             data from file.
         """
-        assert self._lock.is_locked
-        value = self._file.read_text(**kwargs)
-        logging.debug(f"Read text to {self._file}.")
-        return value
+        return self.read_bytes().decode(encoding=encoding, errors=errors)
 
     def write_text(
         self,
@@ -86,20 +87,7 @@ class AtomicFile:
         errors : str, optional
             Error mode, same rules as for open(), by default "strict"
         """
-        assert self._lock.is_locked
-        temp = tempfile.NamedTemporaryFile(
-            mode="wt",
-            delete=False,
-            suffix=self._file.name,
-            dir=self._file.parent,
-            encoding=encoding,
-            errors=errors,
-        )
-        temp.write(content)
-        temp.flush()
-        temp.close()
-        os.replace(temp.name, self._file)
-        logging.debug(f"Wrote text to {self._file}.")
+        self.write_bytes(content.encode(encoding=encoding, errors=errors))
 
     def read_bytes(self, **kwargs: Any) -> bytes:
         """Read data from file. Requires lock to be acquired with context
@@ -117,7 +105,7 @@ class AtomicFile:
         """
         assert self._lock.is_locked
         value = self._file.read_bytes(**kwargs)
-        logging.debug(f"Read text to {self._file}.")
+        logging.debug(f"Read text from {self._file}.")
         return value
 
     def write_bytes(self, content: bytes) -> None:
@@ -137,10 +125,9 @@ class AtomicFile:
             dir=self._file.parent,
         )
         temp.write(content)
-        temp.flush()
         temp.close()
         os.replace(temp.name, self._file)
-        logging.debug(f"Wrote bytes to {self._file}.")
+        logging.debug(f"Wrote to {self._file}.")
 
     def __exit__(
         self,

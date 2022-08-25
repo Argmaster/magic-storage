@@ -13,4 +13,4 @@ class Mode(Enum):
         return self.name
 
     def __repr__(self) -> str:
-        return f"{self.name}:{self.value:>08b}"
+        return f"Mode.{self.name}"

@@ -14,29 +14,17 @@ class InMemory(StorageIOBase, FullyFeaturedMixin):
     def __init__(self) -> None:
         self.__storage: dict[str, str | bytes] = {}
 
-    def _is_available(self, uid: str) -> bool:
-        return uid in self.__storage
+    def _is_available(self, name: str) -> bool:
+        return name in self.__storage
 
-    def _read_text(self, uid: str) -> str:
-        value = self.__storage[uid]
-        assert isinstance(value, str)
-
-        return value
-
-    def _read_bytes(self, uid: str) -> bytes:
-        value = self.__storage[uid]
+    def _read_bytes(self, name: str) -> bytes:
+        value = self.__storage[name]
         assert isinstance(value, bytes)
 
         return value
 
-    def _write_text(self, uid: str, item: str) -> None:
-        self.__storage[uid] = item
+    def _write_bytes(self, name: str, item: bytes) -> None:
+        self.__storage[name] = item
 
-    def _write_bytes(self, uid: str, item: bytes) -> None:
-        self.__storage[uid] = item
-
-    def _delete(self, __uid: str, /, *, missing_ok: bool = False) -> None:
-        if missing_ok:
-            self.__storage.pop(__uid, None)
-        else:
-            self.__storage.pop(__uid)
+    def _delete(self, name: str) -> None:
+        self.__storage.pop(name)

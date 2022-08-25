@@ -10,7 +10,7 @@ from .data import ITEM_BYTES_0, ITEM_TEXT_0
 
 
 class TestAtomicFile:
-    def test_atomic_read_write_text(self, tmp_path: Path) -> None:
+    def test_atomic_io_text(self, tmp_path: Path) -> None:
         tmp_file = tmp_path / "some_file.txt"
 
         with AtomicFile(tmp_file) as file:
@@ -20,7 +20,7 @@ class TestAtomicFile:
         with AtomicFile(tmp_file) as file:
             assert file.read_text() == ITEM_TEXT_0
 
-    def test_atomic_read_write_bytes(self, tmp_path: Path) -> None:
+    def test_atomic_io_bytes(self, tmp_path: Path) -> None:
         tmp_file = tmp_path / "some_file.txt"
 
         with AtomicFile(tmp_file) as file:
