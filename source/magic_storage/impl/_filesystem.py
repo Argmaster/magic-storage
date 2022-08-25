@@ -53,7 +53,7 @@ class Filesystem(StorageIOBase, FullyFeaturedMixin):
     """
 
     def __init__(
-        self, root: str | Path | None, *, subdir: Optional[str] = "data"
+        self, root: str | Path | None = None, *, subdir: Optional[str] = "data"
     ) -> None:
         if root is None:
             # Move to fourth frame in call stack including this_file() call

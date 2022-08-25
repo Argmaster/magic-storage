@@ -1,79 +1,51 @@
 from __future__ import annotations
 
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any
 
-import pytest
-
-from magic_storage import Mode
 from magic_storage.impl import Filesystem
 
-from ..data import ITEM_0, ITEM_1, UIDS
-
-UID = UIDS[0]
+from .test_base import FullIOSuiteBase
 
 
-class TestFileStorage:
-    def test_root_dir(self, tmp_path: Path) -> None:
+class TestFilesystem(FullIOSuiteBase):
+
+    storage: Filesystem
+
+    def setup_method(
+        self,
+    ) -> None:
+        # configure self.attribute
+        self.temp_dir = TemporaryDirectory()
+        self.storage = Filesystem(self.temp_dir.name)
+
+    def teardown_method(self, *_: Any) -> None:
+        # tear down self.attribute
+        self.temp_dir.cleanup()
+
+    def test_root_form_file(self) -> None:
         fs = Filesystem(__file__)
         assert fs._data_dir == Path(__file__).parent / "data"
 
+    def test_root_form_directory(self, tmp_path: Path) -> None:
         fs = Filesystem(tmp_path)
         assert fs._data_dir == tmp_path / "data"
 
+    def test_root_form_directory_no_suffix(self, tmp_path: Path) -> None:
         fs = Filesystem(tmp_path, subdir=None)
         assert fs._data_dir == tmp_path
 
+    def test_root_form_stack(self) -> None:
+        fs = Filesystem()
+        assert fs._data_dir == Path(__file__).parent / "data"
+
     def test_configure(self) -> None:
-        fs = Filesystem(__file__)
-        default_cache = fs._cache
+        default_cache = self.storage._cache
 
-        fs.configure(encoding="latin1")
-        assert fs._encoding == "latin1"
-        assert fs._cache is default_cache
+        self.storage.configure(encoding="latin1")
+        assert self.storage._encoding == "latin1"
+        assert self.storage._cache is default_cache
 
-        fs.configure(cache=None)
-        assert fs._cache is None
-
-    def test_io_json(self, tmp_path: Path) -> None:
-        # Check that object can be stored, then appears available and can re loaded.
-        item = ITEM_0
-        impl = Filesystem(tmp_path)
-        # Begin with store
-        impl.store(UID, mode=Mode.JSON, item=item)
-        # Just created, should be available
-        assert impl.is_available(UID) is True
-        # As is available, should be loadable
-        ld_item = impl.load(UID, mode=Mode.JSON)
-        # And after load should remain in same form
-        assert item == ld_item
-
-    def test_io_pickle(self, tmp_path: Path) -> None:
-        # Check that object can be stored, then appears available and can re loaded.
-        item = ITEM_1
-        impl = Filesystem(tmp_path)
-        # Begin with store
-        impl.store(name=UID, mode=Mode.PICKLE, item=item)
-        # Just created, should be available
-        assert impl.is_available(UID) is True
-        # As is available, should be loadable
-        ld_item = impl.load(UID, Mode.PICKLE)
-        # And after load should remain in same form
-        assert item == ld_item
-
-    def test_delete_existing(self, tmp_path: Path) -> None:
-        # Check that delete works correctly for uid which is available
-        item = ITEM_1
-        impl = Filesystem(tmp_path)
-        impl.store(name=UID, mode=Mode.PICKLE, item=item)
-        impl.delete(UID)
-
-    def test_delete_non_existing(self, tmp_path: Path) -> None:
-        # Check that delete works correctly for uid which is not available
-        impl = Filesystem(tmp_path)
-        with pytest.raises(KeyError):
-            impl.delete(UID)
-
-    def test_delete_non_existing_missing_ok(self, tmp_path: Path) -> None:
-        # Check that delete works correctly for uid which is not available
-        impl = Filesystem(tmp_path)
-        impl.delete(UID, missing_ok=True)
+        self.storage.configure(cache=None)
+        assert self.storage._cache is None

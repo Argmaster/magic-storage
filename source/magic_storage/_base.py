@@ -11,7 +11,7 @@ from magic_storage._utils import compress, decompress
 
 __all__ = ["PickleIO", "JsonIO", "StorageIOBase"]
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import TypeAlias
 
 LoadMapT: TypeAlias = dict[Mode, Callable[["IOBase", str], Any]]
@@ -23,7 +23,7 @@ class _IOMeta(ABCMeta):
     loaders: ClassVar[LoadMapT] = {}
     stores: ClassVar[StoreMapT] = {}
 
-    if TYPE_CHECKING:
+    if TYPE_CHECKING:  # pragma: no cover
         extend_loaders: dict[Mode, str]
         extend_stores: dict[Mode, str]
 
@@ -57,8 +57,12 @@ class _IOMeta(ABCMeta):
 
 
 class IOBase(metaclass=_IOMeta):
+    class DeletionError(IOError):
+        """This exception is raised when attempt to delete resource fails."""
 
-    if TYPE_CHECKING:
+        pass
+
+    if TYPE_CHECKING:  # pragma: no cover
         loaders: ClassVar[LoadMapT]
         stores: ClassVar[StoreMapT]
 
@@ -77,7 +81,7 @@ class IOBase(metaclass=_IOMeta):
         Returns
         -------
         bool
-            True when object is present, False otherwise.
+            True when object is present, False otherwise.`
         """
         assert isinstance(name, str), name
 
@@ -175,20 +179,23 @@ class IOBase(metaclass=_IOMeta):
     def delete(self, name: str, /, *, missing_ok: bool = False) -> None:
         """Delete object with specified object name.
 
-        Attempt to delete non-existing object KeyError will be raised unless missing_ok=True.
-
         Parameters
         ----------
         name : str
             object name.
         missing_ok : bool, optional
             ignores missing key errors, by default False
+
+        Raises
+        ------
+        IOBase.DeletionError
+            on attempt to delete non-existing object, unless missing_ok=True
         """
         try:
             self._delete(name, missing_ok=missing_ok)
         except Exception as e:
             if not missing_ok:
-                raise KeyError(f"Couldn't delete {name}.") from e
+                raise IOBase.DeletionError(f"Couldn't delete {name}.") from e
 
     @abstractmethod
     def _delete(self, name: str, /, *, missing_ok: bool = False) -> None:
