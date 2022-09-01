@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Callable, ClassVar
 from magic_storage._mode import Mode
 from magic_storage._utils import compress, decompress
 
-__all__ = ["PickleIO", "JsonIO", "StorageIOBase"]
+__all__ = ["PickleIO", "JsonIO"]
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import TypeAlias
@@ -59,8 +59,6 @@ class _IOMeta(ABCMeta):
 class IOBase(metaclass=_IOMeta):
     class DeletionError(IOError):
         """This exception is raised when attempt to delete resource fails."""
-
-        pass
 
     if TYPE_CHECKING:  # pragma: no cover
         loaders: ClassVar[LoadMapT]
@@ -228,11 +226,13 @@ class JsonIO(IOBase):
         return self._load(name=name, mode=Mode.JSON, **load_kw)
 
     def _load_json(self, name: str, **load_kw: Any) -> Any:  # noqa: FNE004
-        bytes_value = self._read_bytes(name)
-        assert isinstance(bytes_value, bytes)
+        logging.debug("Using JSON load mode.")
 
-        string_value = bytes_value.decode("utf-8")
-        loaded_value = json.loads(string_value, **load_kw)
+        bytes_value = self._read_bytes(name)
+        assert isinstance(bytes_value, bytes), bytes_value
+        logging.debug(f"Read {bytes_value!r}")
+
+        loaded_value = json.loads(bytes_value, **load_kw)
         return loaded_value
 
     def store_json(self, name: str, item: Any, **json_dumps_kw: Any) -> str:
@@ -255,6 +255,8 @@ class JsonIO(IOBase):
         )
 
     def _store_json(self, name: str, item: Any, **json_dumps_kw: Any) -> None:
+        logging.debug("Using JSON store mode.")
+
         try:
             serialized_value = json.dumps(item, **json_dumps_kw)
         except TypeError:
@@ -298,6 +300,8 @@ class PickleIO(IOBase):
     def _load_pickle(  # noqa: FNE004
         self, name: str, **pickle_load_kw: Any
     ) -> Any:
+        logging.debug("Using PICKLE load mode.")
+
         source = self._read_bytes(name)
         assert isinstance(source, bytes)
 
@@ -332,6 +336,8 @@ class PickleIO(IOBase):
     def _store_pickle(
         self, name: str, item: Any, **pickle_dump_kw: Any
     ) -> None:
+        logging.debug("Using PICKLE store mode.")
+
         raw_value = pickle.dumps(item, **pickle_dump_kw)
         assert isinstance(raw_value, bytes)
 
@@ -343,8 +349,3 @@ class PickleIO(IOBase):
 
         logging.debug(f"Successfully dumped {name} as PICKLE")
         return retval
-
-
-class StorageIOBase(JsonIO, PickleIO):
-    def configure(self) -> None:
-        """Configure resource storage access."""

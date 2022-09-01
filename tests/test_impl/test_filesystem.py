@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
-from magic_storage.impl import Filesystem
+from magic_storage.implementations import Filesystem
 
 from .test_base import FullIOSuiteBase
 
@@ -41,11 +41,5 @@ class TestFilesystem(FullIOSuiteBase):
         assert fs._data_dir == Path(__file__).parent / "data"
 
     def test_configure(self) -> None:
-        default_cache = self.storage._cache
-
         self.storage.configure(encoding="latin1")
         assert self.storage._encoding == "latin1"
-        assert self.storage._cache is default_cache
-
-        self.storage.configure(cache=None)
-        assert self.storage._cache is None

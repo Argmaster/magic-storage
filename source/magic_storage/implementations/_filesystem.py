@@ -5,12 +5,10 @@ from pathlib import Path
 from typing import Optional
 from unittest.mock import sentinel
 
-from cachetools import Cache, RRCache, cachedmethod
-
 from magic_storage._atomic_file import AtomicFile
-from magic_storage._base import StorageIOBase
-from magic_storage._utils import this_file
-from magic_storage.mixins import FullyFeaturedMixin
+from magic_storage._storage import StorageIOBase
+from magic_storage._utils import slugify_encode, this_file
+from magic_storage.extensions import FullyFeaturedMixin
 
 __all__ = ["Filesystem"]
 
@@ -64,6 +62,8 @@ class Filesystem(StorageIOBase, FullyFeaturedMixin):
         if root.is_file():
             root = root.parent
 
+        root = root.absolute()
+
         if subdir is not None:
             self._data_dir = root / subdir
         else:
@@ -71,39 +71,54 @@ class Filesystem(StorageIOBase, FullyFeaturedMixin):
 
         self._data_dir.mkdir(0o777, True, True)
 
-        self._cache: Optional[RRCache] = RRCache(maxsize=128)
         self._encoding = "utf-8"
         super().__init__()
 
-    def _filepath(self, identifier: str) -> Path:
-        assert isinstance(identifier, str)
+    def _filepath(self, name: str) -> Path:
+        assert isinstance(name, str), name
+        name = slugify_encode(name)
+        logging.debug(f"Slugified name into {name!r}")
 
-        return self._data_dir / identifier
+        return self._data_dir / name
 
-    def _get_cache(self) -> Optional[Cache]:
-        return self._cache
-
-    def _is_available(self, identifier: str) -> bool:
-        fname = self._filepath(identifier)
+    def _is_available(self, name: str) -> bool:
+        fname = self._filepath(name)
         return fname.exists() and fname.is_file()
 
-    @cachedmethod(_get_cache)
-    def _read_bytes(self, identifier: str) -> bytes:
-        with AtomicFile(self._filepath(identifier)) as file:
-            return file.read_bytes()
+    def _read_bytes(self, name: str) -> bytes:
+        logging.debug(f"Filesystem read bytes {name!r}")
 
-    def _write_bytes(self, identifier: str, item: bytes) -> None:
-        with AtomicFile(self._filepath(identifier)) as file:
-            file.write_bytes(item)
+        location = self._filepath(name)
+        logging.debug(f"Store to location {location}")
 
-    def _delete(self, identifier: str) -> None:
-        self._filepath(identifier).unlink()
+        with AtomicFile(location, "r") as file:
+            retval = file.read()
+
+        logging.debug(f"Filesystem read bytes {len(retval)}B.")
+        assert isinstance(retval, bytes), retval
+
+        logging.debug(f"Loaded {retval!r}")
+        return retval
+
+    def _write_bytes(self, name: str, item: bytes) -> None:
+        logging.debug(f"Filesystem write bytes {name!r} {len(item)}B.")
+        logging.debug(f"Stored {item!r}")
+
+        location = self._filepath(name)
+        logging.debug(f"Store to location {location}")
+
+        with AtomicFile(location, "w") as file:
+            count = file.write(item)
+
+        logging.debug(f"Filesystem write bytes {count}B.")
+
+    def _delete(self, name: str) -> None:
+        self._filepath(name).unlink()
 
     def configure(
         self,
         *,
         encoding: str | sentinel = sentinel,
-        cache: Optional[Cache] | sentinel = sentinel,
     ) -> None:
         """Configure FileStorage instance.
 
@@ -111,13 +126,7 @@ class Filesystem(StorageIOBase, FullyFeaturedMixin):
         ----------
         encoding : str | sentinel, optional
             Change encoding used to read/write text, when sentinel, old value is kept, by default "utf-8"
-        cache : Optional[Cache] | sentinel, optional
-            Change cache instance used for caching, set to None to disable caching, when sentinel, old value is kept, by default RRCache(maxsize=128)
         """
         if encoding is not sentinel:
             self._encoding = encoding
             logging.debug(f"Changed encoding of FileStorage to {encoding}.")
-
-        if cache is not sentinel:
-            self._cache = cache  # type: ignore
-            logging.debug(f"Changed cache of FileStorage to {cache}.")

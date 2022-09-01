@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from magic_storage._base import StorageIOBase
-from magic_storage.mixins import FullyFeaturedMixin
+from magic_storage._storage import StorageIOBase
+from magic_storage.extensions import FullyFeaturedMixin
 
 
 class InMemory(StorageIOBase, FullyFeaturedMixin):

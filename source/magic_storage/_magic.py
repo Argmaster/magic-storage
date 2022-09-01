@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TypeVar
 
-from .impl._filesystem import Filesystem
+from .implementations._filesystem import Filesystem
 
 __all__ = ["MagicStorage"]
 

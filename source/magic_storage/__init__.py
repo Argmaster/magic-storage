@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from ._atomic_file import AtomicFile
-from ._base import StorageIOBase
 from ._magic import MagicStorage
 from ._mode import Mode
+from ._storage import StorageIOBase
 from ._utils import this_uid
-from .impl import InMemory
-from .impl._filesystem import Filesystem
+from .implementations import InMemory
+from .implementations._filesystem import Filesystem
 
 __all__ = [
     "StorageIOBase",

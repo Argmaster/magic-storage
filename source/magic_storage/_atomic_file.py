@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-import json
-import logging
-import os
-import tempfile
 from inspect import Traceback
 from pathlib import Path
-from typing import Any, KeysView, Optional, Type
+from typing import IO, Optional, Type, cast
 
-from filelock import FileLock
+from filelock import BaseFileLock, FileLock
 
-__all__ = ["AtomicFile", "IndexFile"]
+__all__ = ["AtomicFile"]
 
 
 class AtomicFile:
@@ -23,165 +19,46 @@ class AtomicFile:
     -------
     ```
     >>> tmp = getfixture("tmp_path")
-    >>> with AtomicFile(tmp / "some_file.txt") as file:
-    ...     file.write_text("Example content")
+    >>> with AtomicFile(tmp / "some_file.txt", "w") as file:
+    ...     file.write(b"Example content")
     ...
+    15
     >>> with AtomicFile(tmp / "some_file.txt") as file:
-    ...     file.read_text()
+    ...     file.read()
     ...
-    'Example content'
+    b'Example content'
     >>>
     ```
     """
 
-    def __init__(self, file_path: str | Path) -> None:
-        file_path = Path(file_path)
-        self._file = file_path.absolute()
-        self._lock_file = (
-            file_path.parent / f"{file_path.name}.lock"
-        ).absolute()
-        self._lock = FileLock(self._lock_file)
+    _mode: str
+    _file_path: Path
+    _file_lock: Optional[BaseFileLock]
 
-    def __enter__(self) -> AtomicFile:
-        self._file.touch(0o777, True)
-        logging.debug(f"Created {self._file}.")
-        self._lock.acquire()
-        logging.debug(f"Acquired {self._lock_file}.")
-        return self
-
-    def read_text(
-        self,
-        encoding: str = "utf-8",
-        errors: str = "strict",
-    ) -> str:
-        """Read data from file. Requires lock to be acquired with context
-        manager.
-
-        Parameters
-        ----------
-        **kwargs
-            Keyword arguments passed to Path.read_text()
-
-        Returns
-        -------
-        str
-            data from file.
-        """
-        return self.read_bytes().decode(encoding=encoding, errors=errors)
-
-    def write_text(
-        self,
-        content: str,
-        encoding: str = "utf-8",
-        errors: str = "strict",
-    ) -> None:
-        """Write data to file. Requires lock to be acquired with context
-        manager.
-
-        Parameters
-        ----------
-        content : str
-            Content to be saved.
-        encoding : str, optional
-            Encoding to use, by default "utf-8"
-        errors : str, optional
-            Error mode, same rules as for open(), by default "strict"
-        """
-        self.write_bytes(content.encode(encoding=encoding, errors=errors))
-
-    def read_bytes(self, **kwargs: Any) -> bytes:
-        """Read data from file. Requires lock to be acquired with context
-        manager.
-
-        Parameters
-        ----------
-        **kwargs
-            Keyword arguments passed to Path.read_bytes()
-
-        Returns
-        -------
-        str
-            data from file.
-        """
-        assert self._lock.is_locked
-        value = self._file.read_bytes(**kwargs)
-        logging.debug(f"Read text from {self._file}.")
-        return value
-
-    def write_bytes(self, content: bytes) -> None:
-        """Write data to file. Requires lock to be acquired with context
-        manager.
-
-        Parameters
-        ----------
-        content : str
-            Content to be saved.
-        """
-        assert self._lock.is_locked
-        temp = tempfile.NamedTemporaryFile(
-            mode="wb",
-            delete=False,
-            suffix=self._file.name,
-            dir=self._file.parent,
-        )
-        temp.write(content)
-        temp.close()
-        os.replace(temp.name, self._file)
-        logging.debug(f"Wrote to {self._file}.")
-
-    def __exit__(
-        self,
-        _exception_type: Optional[Type[BaseException]],
-        _exception_value: Optional[BaseException],
-        _traceback: Traceback,
-    ) -> None:
-        self._lock.release()
-        logging.debug(f"Released {self._lock_file}.")
-
-
-class IndexFile(AtomicFile):
-    def __init__(self, file_path: str | Path) -> None:
-        super().__init__(file_path)
-        self._index: Optional[dict[str, str]] = None
-
-    def __enter__(self) -> IndexFile:
-        super().__enter__()
-        self._index = {}
-        try:
-            raw = self._file.read_text(encoding="utf-8")
-            self._index = json.loads(raw)
-        except Exception as e:
-            logging.exception(e)
-        return self
+    def __init__(self, file: str | Path, mode: str = "r") -> None:
+        assert "t" not in mode, f"Text mode not allowed, got {mode!r}"
+        self._mode: str = mode + ("b" if "b" not in mode else "")
+        self._file_path = Path(file).absolute()
+        self._file_lock = None
 
     @property
-    def index(self) -> dict[str, str]:
-        assert self._index is not None
-        return self._index
+    def name(self) -> str:
+        """Return absolute path to file."""
+        return str(self._file_path)
 
-    def __getitem__(self, __key: str) -> str:
-        assert self._index is not None
-        return self._index[__key]
+    def _acquire(self) -> None:
+        if not self._file_path.exists():
+            self._file_path.parent.mkdir(0o777, True, True)
+            self._file_path.touch(0o777, True)
 
-    def get(self, __key: str, __default: str) -> str:
-        assert self._index is not None
-        return self._index.get(__key, __default)
+        lock_path = self._file_path.parent / f"{self._file_path.name}.lock"
+        self._file_lock = FileLock(lock_path)
+        self._file_lock.acquire()
 
-    def __setitem__(self, __key: str, __value: str) -> None:
-        assert self._index is not None
-        self._index[__key] = __value
-
-    def __delitem__(self, __key: str) -> None:
-        assert self._index is not None
-        del self._index[__key]
-
-    def keys(self) -> KeysView:
-        assert self._index is not None
-        return self._index.keys()
-
-    def __contains__(self, __key: str) -> bool:
-        assert self._index is not None
-        return __key in self._index
+    def __enter__(self) -> IO[bytes]:
+        self._acquire()
+        self._file_io = cast(IO[bytes], self._file_path.open(self._mode))
+        return self._file_io
 
     def __exit__(
         self,
@@ -189,8 +66,7 @@ class IndexFile(AtomicFile):
         _exception_value: Optional[BaseException],
         _traceback: Traceback,
     ) -> None:
-        try:
-            self.write_text(json.dumps(self._index), encoding="utf-8")
-        finally:
-            self._index = None
-            super().__exit__(_exception_type, _exception_value, _traceback)
+        self._file_io.flush()
+        self._file_io.close()
+        assert self._file_lock is not None, self._file_path
+        self._file_lock.release()

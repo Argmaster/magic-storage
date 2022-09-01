@@ -1,17 +1,17 @@
 from abc import ABC
 from typing import Any, Callable, TypeVar
 
-from magic_storage._base import StorageIOBase
+from magic_storage._io_base import IOBase
 from magic_storage._utils import uid
 
 T = TypeVar("T")
 
 
 class _UIDProxy:
-    def __init__(self, storage: StorageIOBase) -> None:
+    def __init__(self, storage: IOBase) -> None:
         self._storage = storage
 
-    def __getattribute__(self, __name: str) -> Any:
+    def __getattr__(self, __name: str) -> Any:
         attrib = getattr(self._storage, __name)
         if __name.startswith("load") or __name.startswith("store"):
             return self._uid_getter(attrib)
