@@ -8,6 +8,8 @@ from magic_storage._utils import (
     compress,
     decompress,
     get_random_sha256,
+    slugify_decode,
+    slugify_encode,
     this_file,
     this_uid,
     uid,
@@ -64,3 +66,26 @@ def test_this_file() -> None:
 
     assert isinstance(file_path, Path)
     assert str(file_path).endswith("tests/test_utils.py")
+
+
+FS_STRINGS = [
+    ("python/gloss_python.asp", "python_47_gloss_95_python_46_asp"),
+    (
+        ">>> (1024).to_bytes(2,",
+        "_62__62__62__32__40_1024_41__46_to_95_bytes_40_2_44_",
+    ),
+    (
+        "&gt;&gt;&gt; bytes([2]) b'`",
+        "_38_gt_59__38_gt_59__38_gt_59__32_bytes_40__91_2_93__41__32_b_39__96_",
+    ),
+]
+
+
+@pytest.mark.parametrize(("decoded", "encoded"), FS_STRINGS)
+def test_slugify_encode(decoded: str, encoded: str) -> None:
+    assert slugify_encode(decoded) == encoded
+
+
+@pytest.mark.parametrize(("decoded", "encoded"), FS_STRINGS)
+def test_slugify_decode(decoded: str, encoded: str) -> None:
+    assert slugify_decode(encoded) == decoded

@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import logging
 import lzma
+import re
 from contextlib import suppress
 from hashlib import sha256
 from pathlib import Path
@@ -16,6 +17,10 @@ __all__ = [
     "decompress",
     "compress",
     "get_random_sha256",
+    "slugify_encode",
+    "slugify_decode",
+    "this_uid",
+    "this_file",
 ]
 
 
@@ -95,3 +100,33 @@ def _frame(ascend: int) -> inspect.FrameInfo:
 def this_file(ascend: int = 2) -> Path:
     frame = _frame(ascend)
     return Path(frame.filename)
+
+
+def slugify_encode(__string: str) -> str:
+    return str.join(
+        "",
+        (_FS_ENCODE_ESCAPES[i] for i in __string.encode("utf-8")),
+    )
+
+
+_FS_ENCODE_ESCAPES = {
+    i: (f"_{i}_" if not c.isalnum() else c)
+    for i, c in zip(range(0, 256), map(chr, range(0, 256)))
+}
+
+
+_FS_DECODE_ESCAPES = {v: k for k, v in _FS_ENCODE_ESCAPES.items()}
+_FS_DECODE_PATTERN = re.compile(r"_\d+_")
+
+
+def slugify_decode(__string: str) -> str:
+    escapes: set[str] = set(_FS_DECODE_PATTERN.findall(__string))
+    source = __string.encode("utf-8")
+
+    for escape in escapes:
+        source = source.replace(
+            escape.encode("utf-8"),
+            _FS_DECODE_ESCAPES[escape].to_bytes(1, "little"),
+        )
+
+    return source.decode("utf-8")
